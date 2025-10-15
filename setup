@@ -1,0 +1,82 @@
+pip install flask flask-cors mediapipe numpy scikit-learn requests werkzeug
+pip install -r requirements.txt 
+#Step 1: Start the Flask Backend
+python app.py
+--You should see output like--
+ * Running on http://127.0.0.1:5000
+ * Running on http://0.0.0.0:5000
+
+ Step 2: Open the Frontend
+Open your browser and navigate to:
+http://127.0.0.1:5000/
+Troubleshooting Connection Issues
+Issue: "Backend Offline" message in header
+Solution:
+
+Make sure Flask is running (check terminal for errors)
+Verify the backend is accessible at http://127.0.0.1:5000/api/check_session
+Check browser console for CORS errors
+
+Issue: "Failed to fetch" errors
+Possible causes:
+
+Flask server isn't running
+Port 5000 is being used by another application
+Firewall blocking connections
+
+Solutions:
+
+Restart Flask server
+Change port in both app.py and index.html:
+
+python   # In app.py
+   app.run(debug=True, host='0.0.0.0', port=5001)
+javascript   // In index.html
+   const API_BASE_URL = 'http://127.0.0.1:5001';
+Issue: CORS errors in browser console
+Solution: Already fixed in the updated code with proper CORS configuration.
+First Time Setup
+
+Start Flask server - The database will be created automatically
+Open browser - Navigate to http://127.0.0.1:5000/
+Check connection - You should NOT see "Backend Offline" in the header
+Register account - Click "Login" → "Register"
+Start training - Click "Start Your Evolution" or go to Workout page
+
+Features Checklist
+
+✅ User Registration & Login
+✅ Real-time Pose Detection
+✅ Rep Counting with Form Analysis
+✅ User-specific Workout History
+✅ Visual Progress Reports
+✅ AI-Powered Insights (requires Gemini API key)
+
+Optional: Add Gemini AI Key
+To enable AI-powered reports, add your API key to app.py:
+pythonAPI_KEY = "your-gemini-api-key-here"
+Get a free API key at: https://makersuite.google.com/app/apikey
+Database Location
+The SQLite database fitness_trainer.db will be created in the same directory as app.py.
+Security Notes
+⚠️ Before deploying to production:
+
+Change app.secret_key to a random secure value
+Set SESSION_COOKIE_SECURE = True (requires HTTPS)
+Use environment variables for sensitive data
+Enable stronger CORS restrictions
+
+Need Help?
+
+Check Flask terminal for error messages
+Open browser developer console (F12) for frontend errors
+Verify all dependencies are installed
+Ensure camera permissions are granted for pose detection
+
+Quick Test
+After starting the server, test the backend:
+bashcurl http://127.0.0.1:5000/api/check_session
+Expected response:
+json{"logged_in": false}
+
+Ready to train? Start the Flask server and open your browser! 🏋️
