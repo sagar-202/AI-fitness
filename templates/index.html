@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Fitness Trainer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Space+Grotesk:wght@700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #000000;
+            color: #ecf0f1;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .bg-glass {
+            background-color: rgba(13, 17, 23, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(56, 225, 161, 0.1);
+        }
+
+        .page-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .gradient-text-hero {
+            background-image: linear-gradient(45deg, #1abc9c, #38e1a1, #1abc9c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            background-size: 200% auto;
+            animation: text-gradient 3s ease-in-out infinite;
+        }
+
+        @keyframes text-gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .gradient-bg-hero {
+            background-image: linear-gradient(45deg, #1abc9c, #38e1a1);
+        }
+
+        .glowing-btn {
+            box-shadow: 0 0 15px rgba(56, 225, 161, 0.6);
+            transition: all 0.3s ease;
+        }
+        .glowing-btn:hover {
+            box-shadow: 0 0 30px rgba(56, 225, 161, 0.9), 0 0 60px rgba(56, 225, 161, 0.7);
+            transform: scale(1.05) translateY(-2px);
+        }
+
+        .nav-link.active {
+            font-weight: 700;
+            color: #38e1a1;
+            border-bottom: 2px solid #38e1a1;
+        }
+        
+        .nav-link {
+            transition: color 0.3s ease, border-bottom-color 0.3s ease;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+        .status-good { background-color: #38e1a1; }
+        .status-warning { background-color: #f1c40f; }
+        .status-error { background-color: #e74c3c; }
+
+        .exercise-btn.active {
+            background-color: #38e1a1;
+            color: #0d1117;
+            font-weight: bold;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(56, 225, 161, 0.3);
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(56, 225, 161, 0.2);
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert {
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .alert-error {
+            background-color: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #fca5a5;
+        }
+
+        .alert-success {
+            background-color: rgba(56, 225, 161, 0.2);
+            border: 1px solid rgba(56, 225, 161, 0.5);
+            color: #6ee7b7;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feature-card {
+            background-color: rgba(13, 17, 23, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(56, 225, 161, 0.2);
+            border-radius: 1rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px) scale(1.03);
+            border-color: rgba(56, 225, 161, 0.8);
+            box-shadow: 0 0 25px rgba(56, 225, 161, 0.4);
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(22, 27, 34, 0.8) 0%, rgba(13, 17, 23, 0.8) 100%);
+            border: 1px solid rgba(56, 225, 161, 0.2);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 1rem 0;
+        }
+
+        .locked-section {
+            filter: blur(3px);
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .unlock-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            text-align: center;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+</head>
+<body class="antialiased flex flex-col min-h-screen">
+    <!-- Login/Register Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <div id="alertContainer"></div>
+            
+            <div id="loginForm">
+                <h2 class="text-3xl font-bold gradient-text-hero mb-6 text-center">Welcome Back</h2>
+                <form id="loginFormElement" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Username or Email</label>
+                        <input type="text" id="loginUsername" required
+                            class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:border-green-500 focus:outline-none text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Password</label>
+                        <input type="password" id="loginPassword" required
+                            class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:border-green-500 focus:outline-none text-white">
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-green-600 hover:bg-green-700 rounded-lg font-bold transition duration-300">
+                        Login
+                    </button>
+                </form>
+                <p class="text-center mt-4 text-gray-400">
+                    Don't have an account? 
+                    <a href="#" onclick="showRegisterForm()" class="text-green-400 hover:text-green-300 font-semibold">Register</a>
+                </p>
+            </div>
+
+            <div id="registerForm" class="hidden">
+                <h2 class="text-3xl font-bold gradient-text-hero mb-6 text-center">Create Account</h2>
+                <form id="registerFormElement" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Username</label>
+                        <input type="text" id="registerUsername" required
+                            class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:border-green-500 focus:outline-none text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Email</label>
+                        <input type="email" id="registerEmail" required
+                            class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:border-green-500 focus:outline-none text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Password (min 6 characters)</label>
+                        <input type="password" id="registerPassword" required minlength="6"
+                            class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:border-green-500 focus:outline-none text-white">
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-green-600 hover:bg-green-700 rounded-lg font-bold transition duration-300">
+                        Register
+                    </button>
+                </form>
+                <p class="text-center mt-4 text-gray-400">
+                    Already have an account? 
+                    <a href="#" onclick="showLoginForm()" class="text-green-400 hover:text-green-300 font-semibold">Login</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto p-4 flex-grow">
+        <header class="sticky top-0 z-50 flex justify-between items-center py-4 px-6 bg-glass rounded-xl shadow-lg">
+            <div class="flex items-center space-x-3">
+                <h1 class="text-2xl font-bold gradient-text-hero">AI Fitness Trainer</h1>
+                <span id="connectionStatus" class="text-xs px-2 py-1 rounded-full bg-gray-700 text-gray-400 hidden">
+                    <i class="fas fa-circle text-xs mr-1"></i> Connecting...
+                </span>
+            </div>
+            <nav class="flex items-center space-x-6">
+                <ul class="flex space-x-6">
+                    <li><a href="#" class="nav-link text-lg text-gray-300 hover:text-white transition duration-300 active" onclick="showPage('home-page', this)">Home</a></li>
+                    <li><a href="#" class="nav-link text-lg text-gray-300 hover:text-white transition duration-300" onclick="showPage('about-page', this)">About Us</a></li>
+                    <li><a href="#" class="nav-link text-lg text-gray-300 hover:text-white transition duration-300" onclick="showPage('team-page', this)">Team</a></li>
+                    <li id="workoutNavLink" class="hidden"><a href="#" class="nav-link text-lg text-gray-300 hover:text-white transition duration-300" onclick="showPage('workout-page', this)">Workout</a></li>
+                    <li id="reportsNavLink" class="hidden"><a href="#" class="nav-link text-lg text-gray-300 hover:text-white transition duration-300" onclick="showPage('reports-page', this)">Reports</a></li>
+                </ul>
+                <div id="userSection" class="hidden flex items-center space-x-4 ml-4 border-l border-gray-600 pl-4">
+                    <span class="text-green-400 font-semibold">👤 <span id="usernameDisplay"></span></span>
+                    <button onclick="logout()" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-bold transition duration-300">
+                        Logout
+                    </button>
+                </div>
+                <button id="loginButton" onclick="openAuthModal()" class="px-6 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-bold transition duration-300">
+                    Login
+                </button>
+            </nav>
+        </header>
+
+        <!-- HOME PAGE -->
+        <main id="home-page" class="page-section mt-8 active">
+            <section class="min-h-[70vh] flex flex-col justify-center items-center rounded-2xl p-10 shadow-xl text-center bg-glass">
+                <div class="z-10">
+                    <h2 class="text-5xl md:text-7xl font-extrabold mb-4" style="text-shadow: 0 0 20px rgba(56, 225, 161, 0.5);">
+                        <span class="gradient-text-hero">Unleash Your Inner Machine.</span>
+                    </h2>
+                    <p class="text-xl md:text-2xl mb-8 max-w-3xl mx-auto text-gray-200">
+                        Train Smarter. Move Better. Powered by AI.
+                    </p>
+                    <button onclick="startWorkout()" class="inline-block px-10 py-4 text-white font-bold text-lg rounded-full shadow-xl glowing-btn gradient-bg-hero">
+                        Start Your Evolution
+                    </button>
+                </div>
+            </section>
+
+            <div class="my-16 h-px bg-gradient-to-r from-transparent via-green-500/50 to-transparent"></div>
+
+            <section class="text-center">
+                <h3 class="text-4xl font-bold mb-12">Core Features</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="feature-card p-8">
+                        <i class="fas fa-video text-5xl mb-4 text-green-400"></i>
+                        <h4 class="text-2xl font-bold mb-2">Pose Detection</h4>
+                        <p class="text-gray-400">Real-time body tracking for precise form analysis.</p>
+                    </div>
+                    <div class="feature-card p-8">
+                        <i class="fas fa-list-ol text-5xl mb-4 text-green-400"></i>
+                        <h4 class="text-2xl font-bold mb-2">Rep Counting</h4>
+                        <p class="text-gray-400">Automatic rep and set tracking so you can focus.</p>
+                    </div>
+                    <div class="feature-card p-8">
+                        <i class="fas fa-brain text-5xl mb-4 text-green-400"></i>
+                        <h4 class="text-2xl font-bold mb-2">Smart Feedback</h4>
+                        <p class="text-gray-400">Personalized corrections to improve your form.</p>
+                    </div>
+                    <div class="feature-card p-8">
+                        <i class="fas fa-chart-line text-5xl mb-4 text-green-400"></i>
+                        <h4 class="text-2xl font-bold mb-2">Progress Tracking</h4>
+                        <p class="text-gray-400">Visualize your fitness journey with detailed history.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- ABOUT PAGE -->
+        <main id="about-page" class="page-section mt-8">
+            <section class="bg-glass rounded-2xl p-10 shadow-xl text-center">
+                <div class="space-y-8 py-10">
+                    <h2 class="text-6xl font-extrabold gradient-text-hero animate-pulse">
+                        We're Redefining Personal Training Through AI.
+                    </h2>
+                    <p class="text-xl md:text-2xl max-w-4xl mx-auto text-gray-200">
+                        Accessible. Affordable. Intelligent.
+                    </p>
+                </div>
+            </section>
+        </main>
+        
+        <!-- TEAM PAGE -->
+        <main id="team-page" class="page-section mt-8">
+            <section class="bg-glass rounded-2xl p-10 shadow-xl">
+                <h2 class="text-4xl font-bold gradient-text-hero mb-8 text-center">Meet the Visionaries</h2>
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="flex flex-col items-center text-center p-6 bg-gray-800 rounded-xl shadow-md">
+                        <div class="w-32 h-32 bg-gradient-to-br from-green-400 to-teal-500 rounded-full mb-4 flex items-center justify-center text-4xl font-bold">SM</div>
+                        <h3 class="text-xl font-bold text-green-400">Skandan M J</h3>
+                        <p class="text-gray-300">Developer</p>
+                    </div>
+                    <div class="flex flex-col items-center text-center p-6 bg-gray-800 rounded-xl shadow-md">
+                        <div class="w-32 h-32 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full mb-4 flex items-center justify-center text-4xl font-bold">NC</div>
+                        <h3 class="text-xl font-bold text-green-400">Nikhil M Chandavarkar</h3>
+                        <p class="text-gray-300">Developer</p>
+                    </div>
+                    <div class="flex flex-col items-center text-center p-6 bg-gray-800 rounded-xl shadow-md">
+                        <div class="w-32 h-32 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full mb-4 flex items-center justify-center text-4xl font-bold">SS</div>
+                        <h3 class="text-xl font-bold text-green-400">Suchint Manjunath Shetty</h3>
+                        <p class="text-gray-300">Developer</p>
+                    </div>
+                    <div class="flex flex-col items-center text-center p-6 bg-gray-800 rounded-xl shadow-md">
+                        <div class="w-32 h-32 bg-gradient-to-br from-orange-400 to-red-500 rounded-full mb-4 flex items-center justify-center text-4xl font-bold">SP</div>
+                        <h3 class="text-xl font-bold text-green-400">Sagar Dayanand Patgar</h3>
+                        <p class="text-gray-300">Developer</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- WORKOUT PAGE -->
+        <main id="workout-page" class="page-section mt-8">
+            <div class="header text-center mb-6">
+                <h1 class="text-3xl font-bold gradient-text-hero">🏋️ AI Fitness Trainer</h1>
+                <p class="text-lg text-gray-300">Real-time pose estimation, rep counting, and form correction</p>
+            </div>
+            <div class="main-content grid md:grid-cols-2 lg:grid-cols-2 gap-8">
+                <div class="video-section col-span-2 md:col-span-1">
+                    <div class="video-container relative" style="padding-top: 75%;">
+                        <video id="videoElement" autoplay muted playsinline class="absolute top-0 left-0 w-full h-full object-cover rounded-xl transform scaleX(-1)"></video>
+                        <canvas id="output_canvas" class="absolute top-0 left-0 w-full h-full rounded-xl transform scaleX(-1)"></canvas>
+                    </div>
+                    <div class="loading hidden text-center p-4" id="loading">
+                        <div class="spinner border-t-2 border-green-500 w-10 h-10 mx-auto mb-2 animate-spin rounded-full"></div>
+                        <p class="text-gray-300">Loading AI model...</p>
+                    </div>
+                </div>
+                <div class="controls-section col-span-2 md:col-span-1 space-y-6">
+                    <div class="exercise-selector">
+                        <h3 class="text-2xl font-bold mb-4 text-green-300">Select Exercise</h3>
+                        <div class="exercise-buttons grid grid-cols-2 gap-4">
+                            <button class="exercise-btn bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 hover:bg-green-500 active" data-exercise="squats">Squats</button>
+                            <button class="exercise-btn bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 hover:bg-green-500" data-exercise="pushups">Push-ups</button>
+                            <button class="exercise-btn bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 hover:bg-green-500" data-exercise="lunges">Lunges</button>
+                            <button class="exercise-btn bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 hover:bg-green-500" data-exercise="bicep_curls">Bicep Curls</button>
+                        </div>
+                    </div>
+
+                    <div class="camera-selector">
+                        <h3 class="text-2xl font-bold mb-2 text-green-300">Select Camera</h3>
+                        <select id="cameraSelect" class="w-full bg-gray-700 text-white p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                        </select>
+                    </div>
+                    
+                    <div class="camera-controls flex space-x-4">
+                        <button class="control-btn start-btn bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300 hover:bg-green-700" id="startBtn">Start Camera</button>
+                        <button class="control-btn stop-btn bg-red-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300 hover:bg-red-700" id="stopBtn" disabled>Stop Camera</button>
+                    </div>
+                    <div class="stats-grid grid grid-cols-2 gap-4 text-center">
+                        <div class="stat-card bg-gray-800 p-4 rounded-lg shadow-md">
+                            <div class="stat-value text-4xl font-extrabold text-green-400" id="repCount">0</div>
+                            <div class="stat-label text-sm text-gray-400">Repetitions</div>
+                        </div>
+                        <div class="stat-card bg-gray-800 p-4 rounded-lg shadow-md">
+                            <div class="stat-value text-4xl font-extrabold text-green-400" id="accuracy">0%</div>
+                            <div class="stat-label text-sm text-gray-400">Form Accuracy</div>
+                        </div>
+                    </div>
+                    <div class="feedback-section bg-gray-800 p-4 rounded-lg shadow-md min-h-[80px]">
+                        <h3 class="text-xl font-bold mb-2 text-green-300">Real-time Feedback</h3>
+                        <div class="feedback-text text-md text-gray-300" id="feedbackText">
+                            <span class="status-indicator status-good"></span>
+                            Select an exercise and start your camera to begin!
+                        </div>
+                    </div>
+                    <button class="w-full bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 hover:bg-gray-600" id="showHistoryBtn">Show History</button>
+                    
+                    <div id="history-section" class="hidden bg-gray-800 p-4 rounded-lg">
+                        <h3 class="text-2xl font-bold mb-4 text-green-300">Workout History</h3>
+                        <ul id="history-list" class="list-none space-y-2 text-gray-300 max-h-48 overflow-y-auto">
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- REPORTS PAGE -->
+        <main id="reports-page" class="page-section mt-8">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold gradient-text-hero mb-2">📊 Your Progress Dashboard</h1>
+                <p class="text-gray-400">Track your fitness journey with AI-powered insights</p>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="stat-card p-6 rounded-xl text-center">
+                    <i class="fas fa-dumbbell text-4xl text-green-400 mb-2"></i>
+                    <div class="text-3xl font-bold text-white" id="totalWorkouts">0</div>
+                    <div class="text-sm text-gray-400">Total Workouts</div>
+                </div>
+                <div class="stat-card p-6 rounded-xl text-center">
+                    <i class="fas fa-redo text-4xl text-blue-400 mb-2"></i>
+                    <div class="text-3xl font-bold text-white" id="totalReps">0</div>
+                    <div class="text-sm text-gray-400">Total Reps</div>
+                </div>
+                <div class="stat-card p-6 rounded-xl text-center">
+                    <i class="fas fa-star text-4xl text-yellow-400 mb-2"></i>
+                    <div class="text-3xl font-bold text-white" id="avgForm">0%</div>
+                    <div class="text-sm text-gray-400">Avg Form Score</div>
+                </div>
+                <div class="stat-card p-6 rounded-xl text-center">
+                    <i class="fas fa-fire text-4xl text-orange-400 mb-2"></i>
+                    <div class="text-3xl font-bold text-white" id="totalCalories">0</div>
+                    <div class="text-sm text-gray-400">Calories Burned</div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="bg-glass rounded-xl p-6">
+                    <h3 class="text-2xl font-bold text-green-300 mb-4">Exercise Breakdown</h3>
+                    <div class="chart-container">
+                        <canvas id="exerciseChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-glass rounded-xl p-6">
+                    <h3 class="text-2xl font-bold text-green-300 mb-4">Progress Over Time</h3>
+                    <div class="chart-container">
+                        <canvas id="progressChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Report Section -->
+            <div class="bg-glass rounded-xl p-6">
+                <h3 class="text-2xl font-bold text-green-300 mb-4">🤖 AI-Powered Insights</h3>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">Ask AI about your progress:</label>
+                    <input type="text" id="aiPrompt" placeholder="e.g., How can I improve my squat form?"
+                        class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:border-green-500 focus:outline-none text-white">
+                </div>
+                <button onclick="generateAIReport()" class="w-full py-3 bg-green-600 hover:bg-green-700 rounded-lg font-bold transition duration-300">
+                    Generate AI Report
+                </button>
+                <div id="aiReportContainer" class="mt-6 hidden">
+                    <div class="bg-gray-800 p-6 rounded-lg">
+                        <h4 class="text-xl font-bold text-green-400 mb-3">AI Analysis</h4>
+                        <div id="aiReportText" class="text-gray-300 whitespace-pre-wrap leading-relaxed"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="mt-8 text-center text-sm text-gray-400 py-4 border-t border-gray-700/50">
+        <p>&copy; 2025 Team 18 – SDMIT. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:5000';
+        const THROTTLE_FRAMES = 5;
+        let currentUser = null;
+        let backendAvailable = false;
+
+        // Check backend availability
+        async function checkBackendConnection() {
+            const statusEl = document.getElementById('connectionStatus');
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/check_session`, {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    backendAvailable = true;
+                    statusEl.classList.add('hidden');
+                    const data = await response.json();
+                    if (data.logged_in) {
+                        currentUser = data.user;
+                        updateUIForLoggedInUser();
+                    }
+                } else {
+                    backendAvailable = false;
+                    statusEl.classList.remove('hidden');
+                    statusEl.innerHTML = '<i class="fas fa-circle text-red-400 text-xs mr-1"></i> Backend Error';
+                }
+            } catch (error) {
+                backendAvailable = false;
+                statusEl.classList.remove('hidden');
+                statusEl.innerHTML = '<i class="fas fa-circle text-red-400 text-xs mr-1"></i> Backend Offline';
+                console.warn('Backend not available. Please start the Flask server.');
+            }
+        }
+
+        // ==================== AUTH FUNCTIONS ====================
+        
+        function showAlert(message, type = 'error') {
+            const container = document.getElementById('alertContainer');
+            container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => container.innerHTML = '', 5000);
+        }
+
+        function openAuthModal() {
+            if (!backendAvailable) {
+                alert('Backend server is not running. Please start the Flask server first:\n\npython app.py');
+                return;
+            }
+            document.getElementById('authModal').classList.add('active');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.remove('active');
+            document.getElementById('alertContainer').innerHTML = '';
+        }
+
+        function showLoginForm() {
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('alertContainer').innerHTML = '';
+        }
+
+        function showRegisterForm() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
+            document.getElementById('alertContainer').innerHTML = '';
+        }
+
+        function updateUIForLoggedInUser() {
+            document.getElementById('loginButton').classList.add('hidden');
+            document.getElementById('userSection').classList.remove('hidden');
+            document.getElementById('usernameDisplay').textContent = currentUser.username;
+            document.getElementById('workoutNavLink').classList.remove('hidden');
+            document.getElementById('reportsNavLink').classList.remove('hidden');
+        }
+
+        function updateUIForLoggedOutUser() {
+            document.getElementById('loginButton').classList.remove('hidden');
+            document.getElementById('userSection').classList.add('hidden');
+            document.getElementById('workoutNavLink').classList.add('hidden');
+            document.getElementById('reportsNavLink').classList.add('hidden');
+            currentUser = null;
+        }
+
+        document.getElementById('loginFormElement').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    currentUser = data.user;
+                    showAlert('Login successful!', 'success');
+                    setTimeout(() => {
+                        closeAuthModal();
+                        updateUIForLoggedInUser();
+                    }, 1000);
+                } else {
+                    showAlert(data.error);
+                }
+            } catch (error) {
+                showAlert('Network error. Please try again.');
+            }
+        });
+
+        document.getElementById('registerFormElement').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    currentUser = data.user;
+                    showAlert('Registration successful!', 'success');
+                    setTimeout(() => {
+                        closeAuthModal();
+                        updateUIForLoggedInUser();
+                    }, 1000);
+                } else {
+                    showAlert(data.error);
+                }
+            } catch (error) {
+                showAlert('Network error. Please try again.');
+            }
+        });
+
+        async function logout() {
+            try {
+                await fetch(`${API_BASE_URL}/api/logout`, {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                updateUIForLoggedOutUser();
+                showPage('home-page', document.querySelector('.nav-link[onclick*="home-page"]'));
+            } catch (error) {
+                console.error('Logout failed:', error);
+            }
+        }
+
+        function startWorkout() {
+            if (!backendAvailable) {
+                alert('Backend server is not running. Please start the Flask server first:\n\npython app.py');
+                return;
+            }
+            if (!currentUser) {
+                openAuthModal();
+                return;
+            }
+            showPage('workout-page', document.querySelector('.nav-link[onclick*="workout-page"]'));
+        }
+
+        // Close modal on outside click
+        document.getElementById('authModal').addEventListener('click', (e) => {
+            if (e.target.id === 'authModal') closeAuthModal();
+        });
+
+        // ==================== PAGE NAVIGATION ====================
+        
+        function showPage(pageId, element) {
+            // Check authentication for protected pages
+            if ((pageId === 'workout-page' || pageId === 'reports-page') && !currentUser) {
+                openAuthModal();
+                return;
+            }
+
+            document.querySelectorAll('main.page-section').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            const pageElement = document.getElementById(pageId);
+            if (pageElement) {
+                pageElement.classList.add('active');
+            }
+
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+
+            if (element && element.classList.contains('nav-link')) {
+                element.classList.add('active');
+            }
+            
+            if (pageId === 'reports-page') {
+                loadReportsData();
+            }
+            
+            if (pageId === 'workout-page' && !window.aiTrainerInstance) {
+                window.aiTrainerInstance = new AIFitnessTrainer();
+            }
+        }
+
+        // ==================== AI FITNESS TRAINER ====================
+        
+        class AIFitnessTrainer {
+            constructor() {
+                this.pose = null;
+                this.camera = null;
+                this.currentExercise = 'squats';
+                this.frameCount = 0;
+                
+                this.initializeElements();
+                this.setupEventListeners();
+                this.populateCameraList();
+                this.initializePose();
+            }
+
+            initializeElements() {
+                this.videoElement = document.getElementById('videoElement');
+                this.canvasElement = document.getElementById('output_canvas');
+                this.canvasCtx = this.canvasElement.getContext('2d');
+                this.startBtn = document.getElementById('startBtn');
+                this.stopBtn = document.getElementById('stopBtn');
+                this.repCountElement = document.getElementById('repCount');
+                this.accuracyElement = document.getElementById('accuracy');
+                this.feedbackElement = document.getElementById('feedbackText');
+                this.loadingElement = document.getElementById('loading');
+                this.showHistoryBtn = document.getElementById('showHistoryBtn');
+                this.historySection = document.getElementById('history-section');
+                this.historyList = document.getElementById('history-list');
+                this.cameraSelect = document.getElementById('cameraSelect');
+            }
+
+            setupEventListeners() {
+                document.querySelectorAll('.exercise-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => this.selectExercise(e));
+                });
+                this.startBtn.addEventListener('click', () => this.startCamera());
+                this.stopBtn.addEventListener('click', () => this.stopCamera());
+                this.showHistoryBtn.addEventListener('click', () => this.toggleHistory());
+                navigator.mediaDevices.addEventListener('devicechange', () => this.populateCameraList());
+            }
+            
+            async populateCameraList() {
+                try {
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                    
+                    this.cameraSelect.innerHTML = '';
+
+                    if (videoDevices.length === 0) {
+                        const option = document.createElement('option');
+                        option.textContent = 'No cameras found';
+                        option.disabled = true;
+                        this.cameraSelect.appendChild(option);
+                        return;
+                    }
+
+                    videoDevices.forEach((device, index) => {
+                        const option = document.createElement('option');
+                        option.value = device.deviceId;
+                        option.textContent = device.label || `Camera ${index + 1}`;
+                        this.cameraSelect.appendChild(option);
+                    });
+                } catch (error) {
+                    console.error("Error enumerating devices:", error);
+                    this.updateFeedback("Could not get camera list.", 'error');
+                }
+            }
+
+            async selectExercise(e) {
+                try {
+                    await fetch(`${API_BASE_URL}/api/reset_session`, { 
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+                } catch (error) {
+                    console.error('Error resetting backend session:', error);
+                }
+                
+                document.querySelectorAll('.exercise-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                this.currentExercise = e.target.dataset.exercise;
+                this.resetStats();
+                this.updateFeedback(`Selected ${e.target.textContent}. Ready to start!`, 'good');
+            }
+            
+            async initializePose() {
+                this.loadingElement.style.display = 'block';
+                this.pose = new Pose({
+                    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+                });
+                this.pose.setOptions({
+                    modelComplexity: 1,
+                    smoothLandmarks: true,
+                    minDetectionConfidence: 0.5,
+                    minTrackingConfidence: 0.5
+                });
+                this.pose.onResults((results) => this.onPoseResults(results));
+                
+                const modelLoaded = new Promise(resolve => {
+                    this.pose.initialize().then(resolve);
+                });
+
+                modelLoaded.then(() => {
+                    this.loadingElement.style.display = 'none';
+                    this.updateFeedback('AI model loaded successfully! Start your camera to begin.', 'good');
+                });
+            }
+
+            async startCamera() {
+                const selectedDeviceId = this.cameraSelect.value;
+                if (!selectedDeviceId) {
+                    this.updateFeedback('No camera selected or available.', 'error');
+                    return;
+                }
+
+                const constraints = {
+                    video: {
+                        deviceId: { exact: selectedDeviceId },
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                };
+
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    
+                    this.videoElement.srcObject = stream;
+                    this.camera = new Camera(this.videoElement, {
+                        onFrame: async () => {
+                            if (this.pose) await this.pose.send({ image: this.videoElement });
+                        },
+                        width: 1280,
+                        height: 720
+                    });
+                    
+                    await this.camera.start();
+                    this.startBtn.disabled = true;
+                    this.stopBtn.disabled = false;
+                    this.updateFeedback('Camera started! Position yourself and begin.', 'good');
+                } catch (error) {
+                    console.error('Error starting camera:', error);
+                    this.updateFeedback('Error accessing camera. Please check permissions.', 'error');
+                }
+            }
+
+            stopCamera() {
+                if (this.camera) this.camera.stop();
+                
+                if (this.videoElement.srcObject) {
+                    this.videoElement.srcObject.getTracks().forEach(track => track.stop());
+                    this.videoElement.srcObject = null;
+                }
+                
+                this.startBtn.disabled = false;
+                this.stopBtn.disabled = true;
+                this.updateFeedback('Camera stopped. Session ended.', 'good');
+                this.saveWorkout();
+                this.canvasCtx.clearRect(0, 0, this.canvasElement.width, this.canvasElement.height);
+            }
+
+            async saveWorkout() {
+                const reps = parseInt(this.repCountElement.textContent);
+                if (reps === 0) return; 
+
+                try {
+                    await fetch(`${API_BASE_URL}/api/save_workout`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ exercise: this.currentExercise, reps: reps })
+                    });
+                } catch (error) {
+                    console.error('Failed to save workout:', error);
+                }
+                this.resetStats();
+            }
+
+            async onPoseResults(results) {
+                this.canvasCtx.save();
+                this.canvasCtx.clearRect(0, 0, this.canvasElement.width, this.canvasElement.height);
+                this.canvasElement.width = this.videoElement.videoWidth;
+                this.canvasElement.height = this.videoElement.videoHeight;
+                
+                if (results.poseLandmarks) {
+                    drawConnectors(this.canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {color: '#FFD700', lineWidth: 4});
+                    drawLandmarks(this.canvasCtx, results.poseLandmarks, {color: '#4ECDC4', lineWidth: 2, radius: 4});
+                    
+                    const landmarksArray = results.poseLandmarks.map(l => ({
+                        x: l.x, y: l.y, z: l.z, visibility: l.visibility
+                    }));
+                    
+                    this.frameCount++;
+                    if (this.frameCount % THROTTLE_FRAMES === 0) {
+                        try {
+                            const response = await fetch(`${API_BASE_URL}/api/analyze_pose`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                credentials: 'include',
+                                body: JSON.stringify({ exercise: this.currentExercise, landmarks: landmarksArray })
+                            });
+                            
+                            if (response.ok) {
+                                const data = await response.json();
+                                if(data.rep_completed && data.feedback.length == 0) {
+                                    data.feedback.push("Great Form!");
+                                } else if(data.rep_completed && data.feedback.length > 0) {
+                                    data.feedback.push("Rep counted, but check your form.");
+                                } else if (!data.rep_completed && data.reps > parseInt(this.repCountElement.textContent)) {
+                                    data.feedback.push("Rep not counted due to poor form. Try again.");
+                                }
+                                this.updateStats(data);
+                                const feedbackMessage = data.feedback.join('. ') || 'Keep going!';
+                                this.updateFeedback(feedbackMessage, this.determineStatus(data.form_score));
+                            } else if (response.status === 401) {
+                                this.stopCamera();
+                                openAuthModal();
+                            } else {
+                                this.updateFeedback('Connection error. Is the backend running?', 'error');
+                            }
+                        } catch (error) {
+                            this.updateFeedback('Failed to connect to the server.', 'error');
+                        }
+                    }
+                } else {
+                    this.updateFeedback('No pose detected. Make sure you are visible in the camera.', 'warning');
+                }
+                
+                this.canvasCtx.restore();
+            }
+
+            updateStats(data) {
+                this.repCountElement.textContent = data.reps;
+                this.accuracyElement.textContent = `${Math.round(data.form_score)}%`;
+            }
+
+            updateFeedback(message, status = 'good') {
+                const statusClass = `status-${status}`;
+                this.feedbackElement.innerHTML = `<span class="status-indicator ${statusClass}"></span> ${message}`;
+            }
+
+            determineStatus(score) {
+                if (score >= 90) return 'good';
+                if (score >= 70) return 'warning';
+                return 'error';
+            }
+
+            resetStats() {
+                this.repCountElement.textContent = '0';
+                this.accuracyElement.textContent = '0%';
+            }
+
+            async toggleHistory() {
+                if (this.historySection.classList.contains('hidden')) {
+                    this.historySection.classList.remove('hidden');
+                    this.showHistoryBtn.textContent = 'Hide History';
+                    await this.fetchAndRenderHistory();
+                } else {
+                    this.historySection.classList.add('hidden');
+                    this.showHistoryBtn.textContent = 'Show History';
+                }
+            }
+            
+            async fetchAndRenderHistory() {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/workout_history`, {
+                        credentials: 'include'
+                    });
+                    if (response.ok) {
+                        const history = await response.json();
+                        this.renderHistory(history);
+                    }
+                } catch (error) {
+                    this.historyList.innerHTML = '<li class="p-3">Error fetching history.</li>';
+                }
+            }
+
+            renderHistory(history) {
+                this.historyList.innerHTML = '';
+                if (history.length === 0) {
+                    this.historyList.innerHTML = '<li class="p-3">No workout history found.</li>';
+                    return;
+                }
+                
+                history.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'history-item p-3 bg-gray-700 rounded-lg flex items-center justify-between';
+                    const date = new Date(item.session_date).toLocaleDateString();
+                    const duration = `${Math.floor(item.duration_seconds / 60)}m ${item.duration_seconds % 60}s`;
+                    li.innerHTML = `
+                        <div>
+                            <strong class="text-green-400 capitalize">${item.exercise_name.replace('_', ' ')}</strong>
+                            <span class="text-xs text-gray-500 ml-2">${date}</span>
+                        </div>
+                        <div class="text-sm">
+                            <span>Reps: <strong class="text-white">${item.total_reps}</strong></span> |
+                            <span>Form: <strong class="text-white">${item.avg_form_score.toFixed(1)}%</strong></span> |
+                            <span>Time: <strong class="text-white">${duration}</strong></span>
+                        </div>
+                    `;
+                    this.historyList.appendChild(li);
+                });
+            }
+        }
+
+        // ==================== REPORTS PAGE ====================
+        
+        let exerciseChart = null;
+        let progressChart = null;
+
+        async function loadReportsData() {
+            try {
+                // Load summary data
+                const summaryResponse = await fetch(`${API_BASE_URL}/api/reports/summary?days=30`, {
+                    credentials: 'include'
+                });
+                const summary = await summaryResponse.json();
+                
+                document.getElementById('totalWorkouts').textContent = summary.total_workouts;
+                document.getElementById('totalReps').textContent = summary.total_reps;
+                document.getElementById('avgForm').textContent = `${summary.avg_form_score}%`;
+                document.getElementById('totalCalories').textContent = summary.total_calories;
+
+                // Load exercise breakdown
+                const breakdownResponse = await fetch(`${API_BASE_URL}/api/reports/exercise_breakdown?days=30`, {
+                    credentials: 'include'
+                });
+                const breakdown = await breakdownResponse.json();
+                renderExerciseChart(breakdown);
+
+                // Load progress timeline
+                const timelineResponse = await fetch(`${API_BASE_URL}/api/reports/progress_timeline?days=30`, {
+                    credentials: 'include'
+                });
+                const timeline = await timelineResponse.json();
+                renderProgressChart(timeline);
+
+            } catch (error) {
+                console.error('Error loading reports:', error);
+            }
+        }
+
+        function renderExerciseChart(data) {
+            const ctx = document.getElementById('exerciseChart');
+            
+            if (exerciseChart) {
+                exerciseChart.destroy();
+            }
+
+            const labels = data.map(item => item.exercise_name.replace('_', ' ').toUpperCase());
+            const reps = data.map(item => item.total_reps);
+            const colors = ['#38e1a1', '#3b82f6', '#f59e0b', '#ef4444'];
+
+            exerciseChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Reps',
+                        data: reps,
+                        backgroundColor: colors.slice(0, labels.length),
+                        borderColor: colors.slice(0, labels.length),
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#9ca3af'
+                            },
+                            grid: {
+                                color: 'rgba(156, 163, 175, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#9ca3af'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderProgressChart(data) {
+            const ctx = document.getElementById('progressChart');
+            
+            if (progressChart) {
+                progressChart.destroy();
+            }
+
+            const labels = data.map(item => {
+                const date = new Date(item.date);
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            });
+            const dailyReps = data.map(item => item.daily_reps);
+            const dailyForm = data.map(item => item.daily_form);
+
+            progressChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Daily Reps',
+                            data: dailyReps,
+                            borderColor: '#38e1a1',
+                            backgroundColor: 'rgba(56, 225, 161, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Form Score %',
+                            data: dailyForm,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#9ca3af'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Reps',
+                                color: '#38e1a1'
+                            },
+                            ticks: {
+                                color: '#9ca3af'
+                            },
+                            grid: {
+                                color: 'rgba(156, 163, 175, 0.1)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Form Score %',
+                                color: '#3b82f6'
+                            },
+                            ticks: {
+                                color: '#9ca3af'
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#9ca3af'
+                            },
+                            grid: {
+                                color: 'rgba(156, 163, 175, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function generateAIReport() {
+            const prompt = document.getElementById('aiPrompt').value || 'Provide a comprehensive analysis of my workout history.';
+            const container = document.getElementById('aiReportContainer');
+            const textElement = document.getElementById('aiReportText');
+            
+            container.classList.remove('hidden');
+            textElement.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin text-3xl text-green-400"></i><p class="mt-2">Generating AI insights...</p></div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/generate_report`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ prompt })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    textElement.textContent = data.report;
+                } else {
+                    textElement.innerHTML = `<div class="text-red-400">Error: ${data.error}</div>`;
+                }
+            } catch (error) {
+                textElement.innerHTML = `<div class="text-red-400">Failed to generate report. Please try again.</div>`;
+            }
+        }
+
+        // ==================== INITIALIZATION ====================
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkBackendConnection();
+            const homeLink = document.querySelector('.nav-link[onclick*="home-page"]');
+            if (homeLink) showPage('home-page', homeLink);
+        });
+    </script>
+</body>
+</html>
