@@ -43,7 +43,9 @@ Users can **log in**, **track workouts**, and **view personalized reports** — 
 git clone https://github.com/<your-username>/AI-Fitness-Trainer.git
 cd AI-Fitness-Trainer
 
-2️⃣ Create and Activate Virtual Environment
+---
+
+### 2️⃣ Create and Activate Virtual Environment
 python -m venv venv
 venv\Scripts\activate      # On Windows
 source venv/bin/activate   # On macOS/Linux
