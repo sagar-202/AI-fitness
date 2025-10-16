@@ -39,18 +39,17 @@ Users can **log in**, **track workouts**, and **view personalized reports** — 
 ## ⚙️ Installation (Local Development)
 
 ### 1️⃣ Clone the Repository
-```bash
-git clone https://github.com/<your-username>/AI-Fitness-Trainer.git
-cd AI-Fitness-Trainer
-
----
+-```bash
+-git clone https://github.com/<your-username>/AI-Fitness-Trainer.git
+-cd AI-Fitness-Trainer
 
 ### 2️⃣ Create and Activate Virtual Environment
-python -m venv venv
-venv\Scripts\activate      # On Windows
-source venv/bin/activate   # On macOS/Linux
+-python -m venv venv
+-venv\Scripts\activate      # On Windows
+-source venv/bin/activate   # On macOS/Linux
 
-3️⃣ Install Dependencies
+
+###3️⃣ Install Dependencies
 pip install -r requirements.txt
 
 4️⃣ Run the App
